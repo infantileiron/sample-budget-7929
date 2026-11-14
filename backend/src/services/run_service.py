@@ -6,6 +6,7 @@ from ..models.lot import ArchiveLot
 from ..utils.queue import enqueue
 from .allocation import calculate
 from .draw_service import generate
+from . import registry_service
 
 def create(db,body):
  if not db.get(SamplingPlan,body.plan_id):raise HTTPException(422,"抽样计划不存在")
@@ -21,7 +22,17 @@ def compute(db,run_id):
  row.status="running";db.commit()
  try:
   plan=db.get(SamplingPlan,row.plan_id);lots=[db.get(ArchiveLot,i) for i in plan.lot_ids]
-  result=calculate([{"stratum":l.stratum,"size":l.size,"estimated_error_rate":l.estimated_error_rate} for l in lots],plan.target_detection,plan.budget)
+  registries=registry_service.registry_map(db,plan.lot_ids)
+  lot_payload,void_lots=[],[]
+  for lot in lots:
+   registry=registries.get(lot.id)
+   if registry is None:
+    effective=lot.size # 未导入逐份底册的老批次：沿用登记份数与连续编号
+   else:
+    effective=registry.valid_count
+    if effective==0:void_lots.append(lot.name)
+   lot_payload.append({"id":lot.id,"stratum":lot.stratum,"size":effective,"estimated_error_rate":lot.estimated_error_rate,"declared_size":lot.size})
+  result=calculate(lot_payload,plan.target_detection,plan.budget,void_lots=void_lots)
   row.result={**result,"plan_name":plan.name,"seed":plan.seed};row.status="completed" if result["feasible"] else "infeasible";db.commit()
   if result["feasible"]:generate(db,row)
  except Exception as e:

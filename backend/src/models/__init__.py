@@ -6,3 +6,4 @@ from .review import ReviewDecision
 from .report import Report
 from .user import User
 from .audit import Audit
+from .registry import LotRegistry

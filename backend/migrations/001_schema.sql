@@ -1,3 +1,5 @@
--- New MySQL database baseline: SQLAlchemy metadata creates lots, plans, runs, draws, reviews, reports, users, audits.
--- JSON columns retain selected batch IDs, feasible/infeasible allocation evidence and immutable sampled-document manifests.
+-- New MySQL database baseline: SQLAlchemy metadata creates lots, lot_registries, plans, runs, draws, reviews, reports, users, audits.
+-- JSON columns retain selected batch IDs, per-document registry entries/quarantine, feasible/infeasible allocation evidence and immutable sampled-document manifests.
+-- lot_registries 与 lots 一对一：entries 仅存每个档号的最高修订，quarantined 累积同版矛盾等无法裁决的原始行，last_import 保存最近一次采用/忽略/隔离明细。
+-- 未导入逐份底册的批次不产生 lot_registries 行，容量与抽样沿用 PREFIX-00001 起的连续编号。
 -- Existing deployments require a reviewed schema migration; destructive automatic upgrades are not provided.

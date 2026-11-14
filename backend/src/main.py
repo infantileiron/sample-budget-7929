@@ -7,7 +7,7 @@ from .config.settings import SEED_DEMO
 from .utils.queue import client
 from .middlewares.audit import AuditMiddleware
 from .middlewares.errors import ErrorMiddleware
-from .routes import auth,lots,plans,runs,draws,reviews,reports,audit
+from .routes import auth,lots,plans,runs,draws,reviews,reports,audit,registries
 @asynccontextmanager
 async def lifespan(app):
  initialize()
@@ -19,7 +19,7 @@ async def lifespan(app):
  yield
 app=FastAPI(title="观澜档案 · 抽样复核预算",lifespan=lifespan)
 app.add_middleware(AuditMiddleware);app.add_middleware(ErrorMiddleware)
-for module in [auth,lots,plans,runs,draws,reviews,reports,audit]:app.include_router(module.router)
+for module in [auth,lots,plans,runs,draws,reviews,reports,audit,registries]:app.include_router(module.router)
 @app.get("/health")
 def health():
  with Session() as db:db.execute(text("SELECT 1"))
